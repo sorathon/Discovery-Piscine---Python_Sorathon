@@ -3,9 +3,9 @@ from checkmate import checkmate
 def main():
     # ตัวอย่างกระดานสี่เหลี่ยมจัตุรัส 
    board = """\
-....
+..P.
 .K..
-..P..
+....
 ....\
     """
    checkmate(board)
