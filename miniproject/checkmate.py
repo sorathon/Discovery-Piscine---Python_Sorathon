@@ -1,58 +1,69 @@
-def checkmate(board_str):
-    # 1. เตรียมกระดานและเช็คความถูกต้อง (Validation)
-    rows = board_str.strip().split('\n')
-    size = len(rows)
-    grid = [list(r) for r in rows]
-
-    # เช็คว่าเป็นสี่เหลี่ยมจัตุรัสไหม
-    for r in grid:
-        if len(r) != size:
-            print("Error")
-            return
-
-    # 2. หาตำแหน่ง King และเช็คว่ามีตัวเดียวไหม
-    king_pos = []
+def find_king(grid, size):
+    """ทำหน้าที่หาตำแหน่ง K และเช็คว่าต้องมีแค่ตัวเดียว"""
+    king_pos = None
     for r in range(size):
         for c in range(size):
             if grid[r][c] == 'K':
-                king_pos.append((r, c))
-    
-    if len(king_pos) != 1:
-        print("Error")
-        return
-    
-    kr, kc = king_pos[0]
+                if king_pos is not None: return None # กรณีเจอ King มากกว่า 1 ตัว
+                king_pos = (r, c)
+    return king_pos
 
-    # 3. ตรวจสอบการรุก (The Logic)
-    # [ทิศทางแนวตั้ง-นอน, ทิศทางแนวทแยง]
-    directions = [
-        ( (-1,0), (1,0), (0,-1), (0,1) ),    # แนวตรง (Rook, Queen)
-        ( (-1,-1), (-1,1), (1,-1), (1,1) )   # แนวทแยง (Bishop, Queen)
-    ]
+def check_rook_and_queen(grid, size, kr, kc):
+    """เช็คแนวตรง (บน ล่าง ซ้าย ขวา) สำหรับ Rook และ Queen"""
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    for dr, dc in directions:
+        r, c = kr + dr, kc + dc
+        while 0 <= r < size and 0 <= c < size:
+            if grid[r][c] != '.':
+                if grid[r][c] in ('R', 'Q'): # ถ้าเจอเรือหรือควีน
+                    return True
+                break # เจอหมากอื่นบังทาง
+            r, c = r + dr, c + dc
+    return False
 
-    # ตรวจสอบแนวตรงและแนวทแยง (Sliding Pieces)
-    for i, group in enumerate(directions):
-        for dr, dc in group:
-            r, c = kr + dr, kc + dc
-            while 0 <= r < size and 0 <= c < size:
-                piece = grid[r][c]
-                if piece != '.':
-                    # ถ้าเจอหมากตัวแรก...
-                    if i == 0 and piece in ('R', 'Q'): # แนวตรงเจอ R หรือ Q
-                        print("Success")
-                        return
-                    if i == 1 and piece in ('B', 'Q'): # แนวทแยงเจอ B หรือ Q
-                        print("Success")
-                        return
-                    break # เจอหมากตัวอื่นขวางทาง ให้หยุดดูทิศนี้
-                r, c = r + dr, c + dc
+def check_bishop_and_queen(grid, size, kr, kc):
+    """เช็คแนวทแยง 4 ทิศ สำหรับ Bishop และ Queen"""
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+    for dr, dc in directions:
+        r, c = kr + dr, kc + dc
+        while 0 <= r < size and 0 <= c < size:
+            if grid[r][c] != '.':
+                if grid[r][c] in ('B', 'Q'): # ถ้าเจอบิชอปหรือควีน
+                    return True
+                break # เจอหมากอื่นบังทาง
+            r, c = r + dr, c + dc
+    return False
 
-    # ตรวจสอบเบี้ย (Pawn)
-    # เช็คแค่ 2 จุดทแยงมุม "ด้านล่าง" ของ King (เพราะ Pawn เดินขึ้นข้างบนเพื่อกิน King)
+def check_pawn(grid, size, kr, kc):
+    """เช็คเบี้ยศัตรูที่อยู่ทแยงมุมล่าง (เพราะเบี้ยเดินขึ้นข้างบนมากิน King)"""
     for dr, dc in [(1, -1), (1, 1)]:
         r, c = kr + dr, kc + dc
-        if 0 <= r < size and 0 <= c < size and grid[r][c] == 'P':
-            print("Success")
-            return
+        if 0 <= r < size and 0 <= c < size:
+            if grid[r][c] == 'P':
+                return True
+    return False
 
-    print("Fail")
+def checkmate(board_str):
+    # เตรียมบอร์ดและเช็ค Error
+    rows = board_str.strip().split('\n')
+    size = len(rows)
+    grid = [list(r) for r in rows]
+    
+    if any(len(r) != size for r in grid): # เช็คว่าบอร์ดเบี้ยวไหม
+        print("Error")
+        return
+
+    # หาตำแหน่ง King
+    king = find_king(grid, size)
+    if king is None:
+        print("Error")
+        return
+
+    kr, kc = king
+    # ตรวจสอบทีละด่าน
+    if check_rook_and_queen(grid, size, kr, kc) or \
+       check_bishop_and_queen(grid, size, kr, kc) or \
+       check_pawn(grid, size, kr, kc):
+        print("Success")
+    else:
+        print("Fail")
