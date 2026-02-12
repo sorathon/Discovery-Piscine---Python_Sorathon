@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 user = int(input("Enter a number \n"))
 
 i = 0

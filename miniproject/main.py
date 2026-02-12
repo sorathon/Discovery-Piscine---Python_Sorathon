@@ -1,0 +1,14 @@
+from checkmate import checkmate
+
+def main():
+    # ตัวอย่างกระดานสี่เหลี่ยมจัตุรัส 
+   board = """\
+....
+....
+....
+....\
+    """
+   checkmate(board)
+
+if __name__ == "__main__":
+    main()

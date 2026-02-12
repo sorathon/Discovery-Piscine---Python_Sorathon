@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 c = 0
 while  c <= 10 :
     r = 0
